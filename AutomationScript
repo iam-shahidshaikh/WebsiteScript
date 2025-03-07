@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Variables
+repo_url="https://github.com/iam-shahidshaikh/WebsiteScript.git"
+target="/home/ubuntu/deployment"
+branch="main"
+build="/home/ubuntu/build"
+template_url="https://www.tooplate.com/zip-templates/2117_infinite_loop.zip"
+web_root="/var/www/html"
+
+echo "Updating code from the repository..."
+sudo rm -rf "$target"  # Remove old deployment folder
+git clone -b "$branch" "$repo_url" "$target"
+cd "$target" || exit
+git pull origin "$branch"
+
+echo "Building the project..."
+cd "$build" || exit
+
+echo "Installing Apache and dependencies..."
+sudo apt update && sudo apt install -y apache2 wget unzip
+
+echo "Starting and enabling Apache..."
+sudo systemctl start apache2
+sudo systemctl enable apache2
+
+echo "Deploying website template..."
+sudo wget -O /tmp/template.zip "$template_url"
+sudo unzip -o /tmp/template.zip -d /tmp/
+sudo cp -r /tmp/2117_infinite_loop/* "$web_root/"
+sudo chown -R www-data:www-data "$web_root/"
+
+echo "Restarting Apache..."
+sudo systemctl restart apache2
+
+echo "Deployment complete!"
